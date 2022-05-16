@@ -22,17 +22,29 @@ class linearNetwork(pl.LightningModule):
 
 
     def forward(self, x):
-        """ Expects pixels in a list of lenght 784"""
-        return self.network(x)
+        """ reshapes image inputs to a single 748 length vector """
+        return self.network(x.view(-1, 784))
 
-    def training_step(self, batch, batch_idx):
-        """ expects one  """
+
+    def training_step(self, batch, batch_id):
+        """ expects integer labels """
         images, labels = batch
         assignmentLogProbs = self.forward(images)
         return self.lossFn( assignmentLogProbs, labels )
 
+
+    def test_step(self, batch, batch_id):
+        """ test accuracy of labelling """
+        images, labels = batch
+        _, inds = torch.max( self.forward(images), 1)
+        accuracy = sum( inds == labels ) / len(labels)
+        self.log( 'accuracy', accuracy)
+        return accuracy
+
+
     def configure_optimizers(self):
         return self.optimizer
+
 
 
 
